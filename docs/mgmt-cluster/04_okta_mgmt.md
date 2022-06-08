@@ -46,7 +46,7 @@ Go to Security (side menu) > API.  Choose Authorization Servers tab and select `
 
 Click on Claims tab > Add Claim
   - name=groups
-  - Include in toke type=ID Token
+  - Include in token type=ID Token
   - value type=Groups
   - Filter Matches regex => .*
   - Include in= The following scopes `groups`

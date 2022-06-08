@@ -4,13 +4,13 @@ TKG_LAB_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 source $TKG_LAB_SCRIPTS/set-env.sh
 
 get_cluster_type () {
-  if [ `yq e .management-cluster.name $PARAMS_YAML` = $1 ]; then
+  if [ "$(yq e .management-cluster.name $PARAMS_YAML)" = "$1" ]; then
     echo "managment-cluster"
   fi
-  if [ `yq e .shared-services-cluster.name $PARAMS_YAML` = $1 ]; then
+  if [ "$(yq e .shared-services-cluster.name $PARAMS_YAML)" = "$1" ]; then
     echo "shared-services-cluster"
   fi
-  if [ `yq e .workload-cluster.name $PARAMS_YAML` = $1 ]; then
+  if [ "$(yq e .workload-cluster.name $PARAMS_YAML)" = "$1" ]; then
     echo "workload-cluster"
   fi
 }
