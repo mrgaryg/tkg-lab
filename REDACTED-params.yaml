@@ -36,7 +36,7 @@ vsphere:
   tls-thumbprint: F4:31:AC:BA:98:19:8C:94:BD:3E:49:63:C7:9C:66:0E:D6:61:1E:19
   resource-pool: /Datacenter/host/Cluster/Resources/tkg
   local-ova-folder: /Users/jaguilar/Code/tkg/
-  node-os: photon
+  node-os: ubuntu
 gcloud:
   project: fe-jaguilar
 management-cluster:
@@ -124,7 +124,6 @@ avi:
   avi-password: "VMware1!"
   avi-service-engine-group: Default-Group
   avi-username: admin
-  avi-controller-version: # optional, set to 21.1.3 or 21.1.4 if not using 20.1.x
 dockerhub:
   username: REDACTED # Your dockerhub username
   password: REDACTED # Your dockerhub password
