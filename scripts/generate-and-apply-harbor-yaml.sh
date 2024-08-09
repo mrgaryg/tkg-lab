@@ -65,15 +65,20 @@ bash /tmp/harbor-package/config/scripts/generate-passwords.sh generated/$SHAREDS
 # Specify settings in harbor-data-values.yaml
 export HARBOR_ADMIN_PASSWORD=$(yq e ".harbor.admin-password" $PARAMS_YAML)
 yq e -i ".hostname = env(HARBOR_CN)" generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
-# To be used in the future. Initial tests show that this approach doesn't work in this script: Our let's encrypt cert secret does not include the CA, and even if we manually create the k8s secret with the ca.crt it does not work if it's not called harbor-tls
-# Once https://github.com/vmware-tanzu/community-edition/issues/2942 is done and the CA cert is properly passsed to the core and other Harbor components it may work.
+# To be used in the future. Initial tests show that this approach doesn't work in this script: 
+# Our let's encrypt cert secret does not include the CA, and even if we manually create the k8s 
+# secret with the ca.crt it does not work if it's not called harbor-tls
+# Once https://github.com/vmware-tanzu/community-edition/issues/2942 is done 
+# and the CA cert is properly passed to the core and other Harbor components it may work.
 # export HARBOR_CERT_NAME="harbor-tls"
 # yq e -i '.tlsCertificateSecretName = strenv(HARBOR_CERT_NAME)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 yq e -i '.tlsCertificate."tls.crt" = strenv(HARBOR_CERT_CRT)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 yq e -i '.tlsCertificate."tls.key" = strenv(HARBOR_CERT_KEY)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 yq e -i '.tlsCertificate."ca.crt" = strenv(HARBOR_CERT_CA)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 # Enhance PVC to 50GB for TAP use cases. Comment this row if 10GB is enough for you
-yq e -i '.persistence.persistentVolumeClaim.registry.size = "50Gi"' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
+export PVC_SIZE=$(yq e .harbor.persistent-storage $PARAMS_YAML)
+# yq e -i '.persistence.persistentVolumeClaim.registry.size = "200Gi"' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
+yq e -i '.persistence.persistentVolumeClaim.registry.size = env(PVC_SIZE)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 yq e -i '.harborAdminPassword = env(HARBOR_ADMIN_PASSWORD)' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 yq e -i '.metrics.enabled = true' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 
@@ -97,7 +102,7 @@ if [ "s3" == "$HARBOR_BLOB_STORAGE_TYPE" ]; then
   WAIT_FOR_PACKAGE=false
 fi
 
-# # Remove all comments
+# Remove all comments
 yq -i eval '... comments=""' generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml
 
 # Create Harbor using modifified package
@@ -106,7 +111,8 @@ tanzu package install harbor \
     --version $HARBOR_VERSION \
     --namespace tanzu-user-managed-packages \
     --values-file generated/$SHAREDSVC_CLUSTER_NAME/harbor/harbor-data-values.yaml \
-    --wait=$WAIT_FOR_PACKAGE
+    --wait=$WAIT_FOR_PACKAGE \
+    --install
 
 # Patch (via overlay) the httpproxy (contour) timeout for pulling down large images.  Required for TBS which has large builder images
 kubectl create secret generic harbor-timeout-increase-overlay -n tanzu-user-managed-packages -o yaml --dry-run=client --from-file=tkg-extensions-mods-examples/registry/harbor/overlay-timeout-increase.yaml | kubectl apply -f -

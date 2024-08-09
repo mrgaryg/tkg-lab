@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: httpbin
+  name: httpbin
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: contour
+    kubernetes.io/tls-acme: "true"
+spec:
+  tls:
+  - secretName: httpbin
+    hosts:
+    - httpbin.harbor.svcs.az-tkglab.sprok8s.com
+  rules:
+  - host: httpbin.harbor.svcs.az-tkglab.sprok8s.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: httpbin
+            port:
+              number: 8080
